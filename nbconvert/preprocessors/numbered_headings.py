@@ -1,7 +1,8 @@
 """
 Preprocessor that transforms markdown cells: Insert numbering in from of heading
 """
-
+import re
+import sys
 from nbconvert.preprocessors.base import Preprocessor
 
 try:  # for Mistune >= 3.0
@@ -26,7 +27,10 @@ class NumberedHeadingsPreprocessor(Preprocessor):
             raise Exception(WRONG_MISTUNE_VERSION_ERROR)
         self.md_parser = mistune.create_markdown(renderer=None)
         self.md_renderer = MarkdownRenderer()
-        self.current_numbering = [0]
+        filename = sys.argv[-1]
+        match = re.match(r'^0*(\d+)', filename)  # Match leading digits, stripping leading 0s
+        base_number = int(match.group(1)) - 1 if match else 0
+        self.current_numbering = [base_number]
 
     def format_numbering(self):
         """Return a string representation of the current numbering"""
@@ -56,6 +60,9 @@ class NumberedHeadingsPreprocessor(Preprocessor):
                     if len(element["children"]) > 0:
                         child = element["children"][0]
                         if child["type"] == "text":
+                            # Remove any existing leading number pattern at the start of the heading
+                            child["raw"] = re.sub(r'^\d+(\.\d+)*\s+', '', child["raw"])
+                            # Now prefix it with the correct numbering
                             child["raw"] = self.format_numbering() + " " + child["raw"]
             new_source = self.md_renderer(md_ast, BlockState())
             cell["source"] = new_source
