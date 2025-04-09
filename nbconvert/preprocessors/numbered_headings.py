@@ -27,8 +27,8 @@ class NumberedHeadingsPreprocessor(Preprocessor):
             raise Exception(WRONG_MISTUNE_VERSION_ERROR)
         self.md_parser = mistune.create_markdown(renderer=None)
         self.md_renderer = MarkdownRenderer()
-        filename = sys.argv[-1]
-        match = re.match(r'^0*(\d+)', filename)  # Match leading digits, stripping leading 0s
+        base_number = sys.argv[-1]
+        match = re.match(r'^0*(\d+)$', base_number)  # Match leading digits, stripping leading 0s
         base_number = int(match.group(1)) - 1 if match else 0
         self.current_numbering = [base_number]
 
